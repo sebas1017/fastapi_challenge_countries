@@ -28,13 +28,13 @@ debe tener una cuenta creada en heroku y descargar el cliente de heroku luego:
 1: tener instalado docker
 
 clonar el proyecto y en la carpeta al nivel del Dockerfile ejecutar el siguiente comando
-> docker build -t fastapi_api_challenge_tangelo .
+> docker build -t fastapi-api-challenge-tangelo .
 
 el punto indica que creara una imagen de docker apartir del Dockerfile que se encuentra
 en la ruta actual donde ejecuta el comando , una vez realizado esto la imagen estara creada
 y podra crear un contenedor de la api con el siguiente comando
 
-> docker run -p 8000:8000 fastapi_api_challenge_tangelo
+> docker run -p 8000:8000 fastapi-api-challenge-tangelo
 
 este comando ejecutara un container de la api , expuesto en el puerto 8000 de la maquina propia
 y por lo tanto ya podra dirigirse a la ruta http://localhost:8000 y al invocar este url en la raiz debe esperar a que cargue la api y podra ver los resultados del procesamiento de datos y si entra al contenedor podra ver que en los archivos , se creo automaticamente data.json y la base de datos postgresql siempre esta en funcionamiento en heroku, si desea conectarse a ella
@@ -61,7 +61,7 @@ una vez activado el entorno virtual debera instalar las dependencias por lo que 
 
 una vez instaladas las dependencias correr el script main.py  
 
-> uvicorn main:app --reload
+> python main.py  or python3 main.py
 
 una vez ejecutado podra ir al url  http://127.0.0.1:8000/      y obtendra la respuesta en formato JSON de acuerdo a las especificaciones
 
