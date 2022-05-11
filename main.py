@@ -124,3 +124,5 @@ async def index(response:Response, db: Session = Depends(get_db)):
 			return {"message":"error en api externa de paises"}
 
 
+if __name__=="__main__":
+    uvicorn.run("main:app",host='0.0.0.0', reload=True)
