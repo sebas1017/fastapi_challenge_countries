@@ -79,3 +79,19 @@ una vez instalada las dependencias y el entorno virtual si realizo la instalacio
 sin docker ejecutar en la raiz del proyecto el siguiente comando
 
 > coverage run -m pytest tests
+
+
+# TESTS [LINUX][CON DOCKER][LOCALMENTE]
+
+si tiene el container corriendo (si siguio la guia para instalarlo localmente con docker)
+entonces podra entrar al contenedor con el siguiente comando
+
+para ver los containers activos corriendo
+> docker ps 
+
+de este resultado tome el id del container y ejecute 
+> docker exec -ti id_container bash
+
+una vez aqui podra ejecutar el comando de tests 
+
+> coverage run -m pytest tests
