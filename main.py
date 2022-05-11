@@ -125,4 +125,5 @@ async def index(response:Response, db: Session = Depends(get_db)):
 
 
 if __name__=="__main__":
-    uvicorn.run("main:app",host='0.0.0.0', reload=True)
+	PORT = int(os.environ.get('PORT', 8000))
+	uvicorn.run("main:app",host='0.0.0.0',port=PORT ,reload=True)
