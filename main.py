@@ -124,7 +124,3 @@ async def index(response:Response, db: Session = Depends(get_db)):
 			return {"message":"error en api externa de paises"}
 
 
-
-if __name__ == '__main__':
-	PORT = int(os.environ.get('PORT', 8000))
-	uvicorn.run(app, host="0.0.0.0", port=PORT)
