@@ -10,7 +10,7 @@
 
 
 
-
+url aplicacion :  https://fastapi-api-challenge-tangelo.herokuapp.com/
 Este servidor responde a solicitudes tipo GET de acuerdo a las especificaciones solo tenemos un endpoint el cual a su vez consume una API REST externa para
 la extraccion  y clasifcacion de datos asociados a paises , de acuerdo a esto para poder ejecutar el proyecto debemos hacer lo siguiente
 # INSTALACION [HEROKU-SERVIDOR][CON DOCKER]
