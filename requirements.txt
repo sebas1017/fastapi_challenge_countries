@@ -1,0 +1,9 @@
+fastapi
+psycopg2
+requests
+pandas
+python-dotenv
+uvicorn
+sqlalchemy
+pytest
+pytest-cov
