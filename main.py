@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Response, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from psycopg2 import OperationalError
 from core.config import settings
 from sqlalchemy.orm import Session
@@ -13,6 +13,14 @@ import random
 import hashlib
 import os
 import uvicorn
+import asyncio
+import aiohttp
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+
 
 def create_tables():           
 	Base.metadata.create_all(bind=engine)
@@ -48,81 +56,89 @@ def json_read():
 			data_information = json.load(data_file)
 		return data_information
 
+async def fetch(session, url):
+    async with session.get(url) as response:
+        if response.status == 200:
+            data_response = response.json()
+            return await data_response
+    return {}
 
 
+@app.get("/", status_code=200)
+async def index(db: Session = Depends(get_db)):
+		try:
+			url = "https://restcountries.com/v3.1/all"
+			url_countries_by_region = "https://restcountries.com/v3.1/region/{region}"
 
-@app.get("/")
-async def index(response:Response, db: Session = Depends(get_db)):
-		url = "https://restcountries.com/v3.1/all"
-		url_countries_by_region = "https://restcountries.com/v3.1/region/{region}"
+			headers = {
+				'x-rapidapi-key': "921cfc17abmsh42834139575656fp12725cjsn8ce3ad10333d",
+				'x-rapidapi-host': "restcountries-v1.p.rapidapi.com"
+				}
+			regions_data = []
+			hash_languages =[]
+			countries = []
+			times=[]
+			data  = requests.get(url, headers=headers)
+			if data.status_code == 200:
+				try: 
+					for information in data.json():
+						if information["region"]  and not information["region"]  in regions_data:
+							regions_data.append(information["region"])
+							# only the different existing regions
 
-		headers = {
-			'x-rapidapi-key': "921cfc17abmsh42834139575656fp12725cjsn8ce3ad10333d",
-			'x-rapidapi-host': "restcountries-v1.p.rapidapi.com"
-			}
-		regions_data = []
-		hash_languages =[]
-		countries = []
-		times=[]
-		data  = requests.get(url, headers=headers)
-		if data.status_code == 200:
-			try: 
-				for information in data.json():
-					if information["region"]  and not information["region"]  in regions_data:
-						regions_data.append(information["region"])
-						# only the different existing regions
+					async with aiohttp.ClientSession() as session:
+						for region in regions_data:
+							start_time = time.time()
+							#We wait 2 seconds before making the next request to avoid ip blocks in the API
+							#time.sleep(5)
+							data_task = asyncio.create_task( fetch(session, url_countries_by_region.format(region=region) ))
+							response_by_region = await asyncio.gather(data_task)
 
+							response_by_region = response_by_region[0]
+       
+							
+							# we consult the data requested by region
+							valid = False
+							while valid is False:
+								country_option = random.randint(0,len(response_by_region)-1)
+								if "languages" in list( response_by_region[country_option].keys()):
+									valid = True
+								else:
+									response_by_region.pop(country_option)
 
-				for region in regions_data:
-					start_time = time.time()
-					#We wait 2 seconds before making the next request to avoid ip blocks in the API
-					#time.sleep(5)
-					response_by_region = requests.get( 
-						url_countries_by_region.format(region=region), headers=headers).json()
-					# we consult the data requested by region
-					valid = False
-					while valid is False:
-						country_option = random.randint(0,len(response_by_region)-1)
-						if "languages" in list( response_by_region[country_option].keys()):
-							valid = True
-						else:
-							response_by_region.pop(country_option)
+							countries.append(response_by_region[country_option]['name']['common'])
+							key_language =  list(response_by_region[country_option]['languages'].keys())[0]
+							hash_languages.append(hashlib.sha1(response_by_region[country_option]['languages'][str(key_language)].encode()).hexdigest())
+							end_time = time.time()
+							times.append(round((end_time-start_time)*1000,2))
+				except KeyError:
+					data = {"message":"Error en API externa de paises recargar nuevamente"}
+					raise HTTPException(status_code=500,detail=data)
+				
+				df = pd.DataFrame({
+					"Region": regions_data,
+					"Country": countries,
+					"Language SHA1": hash_languages,
+					"Time [ms]": times
+				})
+				#  we build a dataframe and a data.json file with the results of the algorithm
+				df.to_json(path_or_buf='data.json')
+				# here we can return the answer in html format but I decided to leave the answer in json format
+				data_information = json_read()
+				results_database = insert_data(df,db)
 
-					countries.append(response_by_region[country_option]['name']['common'])
-					key_language =  list(response_by_region[country_option]['languages'].keys())[0]
-					hash_languages.append(hashlib.sha1(response_by_region[country_option]['languages'][str(key_language)].encode()).hexdigest())
-					end_time = time.time()
-					times.append(round((end_time-start_time)*1000,2))
-			except KeyError:
-				data = {"message":"Error en API externa de paises recargar nuevamente"}
-				with open('data.json', 'w', encoding='utf-8') as f:
-					json.dump(data, f, ensure_ascii=False, indent=4)
-				error_information = json_read()
-				response.status_code == 500
-				return error_information
-			
-			df = pd.DataFrame({
-				"Region": regions_data,
-				"Country": countries,
-				"Language SHA1": hash_languages,
-				"Time [ms]": times
-			})
-			#  we build a dataframe and a data.json file with the results of the algorithm
-			df.to_json(path_or_buf='data.json')
-			# here we can return the answer in html format but I decided to leave the answer in json format
-			data_information = json_read()
-			results_database = insert_data(df,db)
-
-			if results_database != True:
-				response.status_code == 500
-				return results_database
+				if results_database != True:
+					data = {"message":"Error interno servidor DB recargar nuevamente"}
+					raise HTTPException(status_code=500,detail=data)
+				else:
+					return data_information
 			else:
-				response.status_code == 200
-				return data_information
-		else:
-			response.status_code == 500
-			return {"message":"error en api externa de paises"}
-
+				data = {"message":"error en api externa de paises"}
+				raise HTTPException(status_code=500,detail=data)
+		except Exception as error:
+			print(error)
+			logger.error(f"Error in funcion index endpoint -> {error}")
+     
 
 if __name__=="__main__":
 	PORT = int(os.environ.get('PORT', 8000))
