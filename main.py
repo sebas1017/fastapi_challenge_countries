@@ -89,8 +89,6 @@ async def index(db: Session = Depends(get_db)):
 					async with aiohttp.ClientSession() as session:
 						for region in regions_data:
 							start_time = time.time()
-							#We wait 2 seconds before making the next request to avoid ip blocks in the API
-							#time.sleep(5)
 							data_task = asyncio.create_task( fetch(session, url_countries_by_region.format(region=region) ))
 							response_by_region = await asyncio.gather(data_task)
 
@@ -136,7 +134,6 @@ async def index(db: Session = Depends(get_db)):
 				data = {"message":"error en api externa de paises"}
 				raise HTTPException(status_code=500,detail=data)
 		except Exception as error:
-			print(error)
 			logger.error(f"Error in funcion index endpoint -> {error}")
      
 
