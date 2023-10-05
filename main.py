@@ -1,4 +1,4 @@
-from database import run_migrations
+from db.utils_connection import run_migrations
 from fastapi import FastAPI, Depends, HTTPException
 from psycopg2 import OperationalError
 from core.config import settings
@@ -20,6 +20,7 @@ import logging
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
 
 
 
@@ -136,4 +137,4 @@ async def index(db: Session = Depends(get_db)):
      
 
 if __name__=="__main__":
-	run_migrations()
+	run_migrations([StatisticsCountries])
