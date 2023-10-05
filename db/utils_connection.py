@@ -3,7 +3,7 @@ from peewee import SqliteDatabase
 from dotenv import load_dotenv
 load_dotenv()
 
-database = SqliteDatabase('../instance/sqlite_database.db')
+database = SqliteDatabase('sqlite_database.db')
 
 
 def run_migrations(array_objects_db):
