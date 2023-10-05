@@ -1,1 +1,1 @@
-python -m gunicorn main:app -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
+python -m gunicorn main:app -k uvicorn.workers.UvicornWorker
