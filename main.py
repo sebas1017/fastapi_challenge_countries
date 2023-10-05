@@ -1,3 +1,4 @@
+from database import run_migrations
 from fastapi import FastAPI, Depends, HTTPException
 from psycopg2 import OperationalError
 from core.config import settings
@@ -138,5 +139,4 @@ async def index(db: Session = Depends(get_db)):
      
 
 if __name__=="__main__":
-	PORT = int(os.environ.get('PORT', 8000))
-	uvicorn.run("main:app",host='0.0.0.0',port=PORT ,reload=True)
+	run_migrations()
