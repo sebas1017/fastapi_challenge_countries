@@ -23,13 +23,10 @@ logger.setLevel(logging.INFO)
 
 
 
-def create_tables():           
-	Base.metadata.create_all(bind=engine)
-
 
 
 app = FastAPI(title=settings.PROJECT_NAME,version=settings.PROJECT_VERSION)
-create_tables()      
+    
 	
 def insert_data(statistics, db):
 	try:
