@@ -1,11 +1,7 @@
-from db.utils_connection import run_migrations
 from fastapi import FastAPI, Depends, HTTPException
 from psycopg2 import OperationalError
 from core.config import settings
 from sqlalchemy.orm import Session
-from db.session import get_db, engine 
-from db.base import Base  
-from db.models.statistics import StatisticsCountries
 import json
 import requests
 import pandas as pd
@@ -27,22 +23,6 @@ logger.setLevel(logging.INFO)
 
 
 app = FastAPI(title=settings.PROJECT_NAME,version=settings.PROJECT_VERSION)
-    
-	
-def insert_data(statistics, db):
-	try:
-		db_statistics = StatisticsCountries(
-		total_time = statistics['Time [ms]'].sum() ,
-		mean_time =  statistics['Time [ms]'].mean() ,
-		min_time = statistics['Time [ms]'].min() ,
-		max_time = statistics['Time [ms]'].max()
-		)
-		db.add(db_statistics)
-		db.commit()
-		db.refresh(db_statistics)
-		return True
-	except OperationalError:
-		return "Por el momento nuestro servidor se encuentra abajo Espere por favor..."
 
 
 
@@ -64,7 +44,7 @@ async def fetch(session, url):
 
 
 @app.get("/", status_code=200)
-async def index(db: Session = Depends(get_db)):
+async def index():
 		try:
 			url = "https://restcountries.com/v3.1/all"
 			url_countries_by_region = "https://restcountries.com/v3.1/region/{region}"
@@ -122,19 +102,9 @@ async def index(db: Session = Depends(get_db)):
 				df.to_json(path_or_buf='data.json')
 				# here we can return the answer in html format but I decided to leave the answer in json format
 				data_information = json_read()
-				results_database = insert_data(df,db)
-
-				if results_database != True:
-					data = {"message":"Error interno servidor DB recargar nuevamente"}
-					raise HTTPException(status_code=500,detail=data)
-				else:
-					return data_information
+				return data_information
 			else:
 				data = {"message":"error en api externa de paises"}
 				raise HTTPException(status_code=500,detail=data)
 		except Exception as error:
 			logger.error(f"Error in funcion index endpoint -> {error}")
-     
-
-if __name__=="__main__":
-	run_migrations([StatisticsCountries])
