@@ -3,3 +3,4 @@ uvicorn
 requests
 gunicorn
 python-dotenv
+pandas
