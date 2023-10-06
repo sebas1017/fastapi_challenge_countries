@@ -1,7 +1,5 @@
-from fastapi import FastAPI, Depends, HTTPException
-from psycopg2 import OperationalError
+from fastapi import FastAPI, HTTPException
 from core.config import settings
-from sqlalchemy.orm import Session
 import json
 import requests
 import pandas as pd
@@ -108,3 +106,5 @@ async def index():
 				raise HTTPException(status_code=500,detail=data)
 		except Exception as error:
 			logger.error(f"Error in funcion index endpoint -> {error}")
+if __name__=="__main__":
+	print("Started app")
